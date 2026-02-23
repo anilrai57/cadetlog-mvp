@@ -1,5 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ScreenHeader from "./src/components/ScreenHeader";
+import Chip from "./src/components/Chip";
+import Tile from "./src/components/Tile";
+
+import { RANKS, SHIP_TYPES, CATEGORIES } from "./src/constants/masterData";
+import { STORAGE_KEYS, saveToStorage, loadFromStorage, clearAllStorage } from "./src/storage/storage";
 import {
   SafeAreaView,
   View,
@@ -10,117 +16,6 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
-
-const RANKS = ["Deck Cadet", "Engine Cadet", "ETO Cadet"];
-
-const SHIP_TYPES = [
-  "Oil Tanker",
-  "Product Tanker",
-  "Chemical Tanker",
-  "LPG Carrier",
-  "LNG Carrier",
-  "Bulk Carrier",
-  "Container Vessel",
-  "Offshore Vessel",
-  "Other",
-];
-
-const CATEGORIES = [
-  "Navigation Watch",
-  "Deck Maintenance",
-  "Deck Operations",
-  "E/R Operations",
-  "Machinery Maintenance",
-  "LSA / FFA",
-  "Cargo Operations",
-  "Mooring Stations",
-  "Ship Housekeeping Work",
-  "Documentation & Reporting",
-  "Unproductive Work",
-  "Rest / Holiday",
-  "Study Time",
-  "Other",
-];
-const STORAGE_KEYS = {
-  ship: "CADETLOG_ship_v1",
-  entries: "CADETLOG_entries_v1",
-  entryDate: "CADETLOG_entryDate_v1"
-};
-
-async function saveToStorage(key, value) {
-  try {
-    await AsyncStorage.setItem(key, JSON.stringify(value));
-  } catch (e) {
-    // ignore in MVP
-  }
-}
-
-async function loadFromStorage(key, fallback) {
-  try {
-    const raw = await AsyncStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw);
-  } catch (e) {
-    return fallback;
-  }
-}
-
-function Chip({ label, selected, onPress }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 18,
-        marginRight: 8,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: selected ? "#111" : "#d9d9d9",
-        backgroundColor: selected ? "#111" : "#fff",
-      }}
-    >
-      <Text style={{ color: selected ? "#fff" : "#111", fontSize: 13, fontWeight: "600" }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function Tile({ title, value }) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        borderWidth: 1,
-        borderColor: "#e6e6e6",
-        borderRadius: 12,
-        padding: 12,
-        margin: 6,
-        backgroundColor: "#fff",
-      }}
-    >
-      <Text style={{ fontSize: 12, color: "#555" }}>{title}</Text>
-      <Text style={{ fontSize: 18, marginTop: 6, fontWeight: "700" }}>{value}</Text>
-    </View>
-  );
-}
-
-function ScreenHeader({ title, showTabs, screen, setScreen }) {
-  const tabs = ["home", "ship", "log", "dash", "export"];
-  return (
-    <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: "#eee", backgroundColor: "#fff" }}>
-      <Text style={{ fontSize: 18, fontWeight: "800" }}>{title}</Text>
-      {showTabs ? (
-        <View style={{ flexDirection: "row", marginTop: 10, flexWrap: "wrap" }}>
-          {tabs.map((t) => (
-            <Chip key={t} label={t.toUpperCase()} selected={screen === t} onPress={() => setScreen(t)} />
-          ))}
-        </View>
-      ) : null}
-    </View>
-  );
-}
 
 function sectionTitle(text) {
   return <Text style={{ fontSize: 12, color: "#555", marginBottom: 8, marginTop: 12 }}>{text}</Text>;
