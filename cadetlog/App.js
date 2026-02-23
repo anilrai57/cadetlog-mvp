@@ -3,7 +3,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import ScreenHeader from "./src/components/ScreenHeader";
 import Chip from "./src/components/Chip";
 import Tile from "./src/components/Tile";
-
+import LoginScreen from "./src/screens/LoginScreen";
+import HomeScreen from "./src/screens/HomeScreen";
+import ShipScreen from "./src/screens/ShipScreen";
+import LogScreen from "./src/screens/LogScreen";
+import AddEntryScreen from "./src/screens/AddEntryScreen";
+import EditEntryScreen from "./src/screens/EditEntryScreen";
+import DashboardScreen from "./src/screens/DashboardScreen";
+import ExportScreen from "./src/screens/ExportScreen";
 import { RANKS, SHIP_TYPES, CATEGORIES } from "./src/constants/masterData";
 import { STORAGE_KEYS, saveToStorage, loadFromStorage, clearAllStorage } from "./src/storage/storage";
 import {
@@ -252,439 +259,107 @@ async function clearAllData() {
 }
   // ---------- Screens ----------
   if (screen === "login") {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <ScreenHeader title="CADETLOG" showTabs={false} screen={screen} setScreen={setScreen} />
-        <View style={{ padding: 16 }}>
-          <Text style={{ color: "#555", marginBottom: 18 }}>
-            Supporting structured cadet training. Login allowed only for active cadets.
-          </Text>
-
-          {sectionTitle("Crew ID")}
-          <TextInput
-            value={crewId}
-            onChangeText={setCrewId}
-            placeholder="e.g. AE12345"
-            autoCapitalize="characters"
-            style={{
-              borderWidth: 1,
-              borderColor: "#ddd",
-              borderRadius: 10,
-              padding: 12,
-            }}
-          />
-
-          {sectionTitle("Password")}
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            secureTextEntry
-            style={{
-              borderWidth: 1,
-              borderColor: "#ddd",
-              borderRadius: 10,
-              padding: 12,
-            }}
-          />
-
-          <Pressable
-            onPress={login}
-            style={{ backgroundColor: "#111", padding: 14, borderRadius: 12, alignItems: "center", marginTop: 18 }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "800" }}>Login</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (screen === "home") {
-    const voyageStatus = ship.signOff ? "Voyage Closed" : "Sailing (Sign-off blank)";
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fafafa" }}>
-        <ScreenHeader title="Home" showTabs={true} screen={screen} setScreen={setScreen} />
-        <View style={{ padding: 16 }}>
-          <View style={{ backgroundColor: "#fff", padding: 14, borderRadius: 12, borderWidth: 1, borderColor: "#eee" }}>
-            <Text style={{ fontSize: 14, fontWeight: "800" }}>{profile.fullName}</Text>
-            <Text style={{ color: "#555", marginTop: 4 }}>
-              {profile.rank} • {profile.bomid}
-            </Text>
-
-            <View style={{ height: 10 }} />
-            <Text style={{ color: "#555" }}>Ship: {ship.shipName}</Text>
-            <Text style={{ color: "#555", marginTop: 4 }}>Type: {ship.shipType}</Text>
-            <Text style={{ color: "#555", marginTop: 4 }}>Status: {voyageStatus}</Text>
-            <Text style={{ color: "#555", marginTop: 4 }}>Entry Date: {entryDate}</Text>
-          </View>
-
-          <View style={{ flexDirection: "row", marginTop: 12 }}>
-            <Tile title="Total Hours (month)" value={monthlyTotals.totalHours.toFixed(1)} />
-            <Tile title="Unproductive (month)" value={unproductiveHours.toFixed(1)} />
-          </View>
-          <View style={{ flexDirection: "row" }}>
-            <Tile title="Documentation (month)" value={docHours.toFixed(1)} />
-            <Tile title="Study Time (month)" value={studyHours.toFixed(1)} />
-          </View>
-
-          <Pressable
-            onPress={() => setScreen("log")}
-            style={{ backgroundColor: "#111", padding: 14, borderRadius: 12, alignItems: "center", marginTop: 10 }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "800" }}>Go to Daily Log</Text>
-          </Pressable>
-
-          
-
-{/* ✅ ADD THIS RIGHT BELOW */}
-<Pressable
-  onPress={clearAllData}
-  style={{
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10
-  }}
->
-  <Text style={{ fontWeight: "800" }}>Clear All Data</Text>
-</Pressable>
-
-        </View>
-      </SafeAreaView>
-    );
-  }
-
+  return (
+    <LoginScreen
+      screen={screen}
+      setScreen={setScreen}
+      crewId={crewId}
+      setCrewId={setCrewId}
+      password={password}
+      setPassword={setPassword}
+      login={login}
+    />
+  );
+}
+if (screen === "home") {
+  return (
+    <HomeScreen
+      screen={screen}
+      setScreen={setScreen}
+      profile={profile}
+      ship={ship}
+      entryDate={entryDate}
+      monthlyTotals={monthlyTotals}
+      unproductiveHours={unproductiveHours}
+      docHours={docHours}
+      studyHours={studyHours}
+      clearAllData={clearAllData}
+    />
+  );
+}
+  
   if (screen === "ship") {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <ScreenHeader title="My Ship Details" showTabs={true} screen={screen} setScreen={setScreen} />
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {sectionTitle("Ship Name")}
-          <TextInput
-            value={ship.shipName}
-            onChangeText={(v) => setShip((p) => ({ ...p, shipName: v }))}
-            placeholder="e.g. MV Ocean Star"
-            style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12 }}
-          />
-
-          {sectionTitle("Ship Type (Select one)")}
-          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-            {SHIP_TYPES.map((t) => (
-              <Chip key={t} label={t} selected={ship.shipType === t} onPress={() => setShip((p) => ({ ...p, shipType: t }))} />
-            ))}
-          </View>
-
-          {sectionTitle("Sign-on Date (YYYY-MM-DD)")}
-          <TextInput
-            value={ship.signOn}
-            onChangeText={(v) => setShip((p) => ({ ...p, signOn: v }))}
-            placeholder="2026-02-01"
-            style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12 }}
-          />
-
-          {sectionTitle("Sign-off Date (blank if sailing)")}
-          <TextInput
-            value={ship.signOff}
-            onChangeText={(v) => setShip((p) => ({ ...p, signOff: v }))}
-            placeholder=""
-            style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12 }}
-          />
-
-          <Pressable
-            onPress={() => Alert.alert("Saved (MVP)", "Ship details saved locally (demo).")}
-            style={{ backgroundColor: "#111", padding: 14, borderRadius: 12, alignItems: "center", marginTop: 18 }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "800" }}>Save</Text>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
+  return <ShipScreen screen={screen} setScreen={setScreen} ship={ship} setShip={setShip} />;
+}
 
   if (screen === "log") {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <ScreenHeader title={`Daily Log (${entryDate})`} showTabs={true} screen={screen} setScreen={setScreen} />
-        <View style={{ padding: 16, flex: 1 }}>
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <Pressable
-              onPress={() => {
-                if (!requireShipDetails()) return;
-                setScreen("add");
-              }}
-              style={{ backgroundColor: "#111", padding: 12, borderRadius: 12, flex: 1, alignItems: "center" }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "800" }}>Add Entry</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setScreen("dash")}
-              style={{
-                borderWidth: 1,
-                borderColor: "#ddd",
-                padding: 12,
-                borderRadius: 12,
-                flex: 1,
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontWeight: "800" }}>Dashboard</Text>
-            </Pressable>
-          </View>
+  return (
+    <LogScreen
+      screen={screen}
+      setScreen={setScreen}
+      entryDate={entryDate}
+      entries={entries}
+      requireShipDetails={requireShipDetails}
+      openEditEntry={openEditEntry}
+    />
+  );
+}
 
-          <Text style={{ marginTop: 14, marginBottom: 8, color: "#555" }}>Entries for {entryDate}</Text>
-
-          <FlatList
-            data={todaysEntries}
-            keyExtractor={(item) => item.id}
-            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-            renderItem={({ item }) => (
-  <Pressable onPress={() => openEditEntry(item)}>
-    <View style={{ borderWidth: 1, borderColor: "#eee", borderRadius: 12, padding: 12 }}>
-      <Text style={{ fontWeight: "800" }}>{item.category}</Text>
-      <Text style={{ color: "#555", marginTop: 4 }}>{item.hours.toFixed(1)} hrs</Text>
-      <Text style={{ color: "#111", marginTop: 8 }}>{item.desc}</Text>
-      <Text style={{ color: "#777", marginTop: 8, fontSize: 12 }}>Tap to edit</Text>
-    </View>
-  </Pressable>
-)}
-
-            ListEmptyComponent={<Text style={{ color: "#777" }}>No entries yet for this date.</Text>}
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (screen === "add") {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <ScreenHeader title="Add Work Entry" showTabs={true} screen={screen} setScreen={setScreen} />
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {sectionTitle("Entry Date (YYYY-MM-DD)")}
-          <TextInput
-            value={entryDate}
-            onChangeText={setEntryDate}
-            style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12 }}
-          />
-
-          {sectionTitle("Category (Select one)")}
-          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-            {CATEGORIES.map((c) => (
-              <Chip key={c} label={c} selected={category === c} onPress={() => setCategory(c)} />
-            ))}
-          </View>
-
-          {sectionTitle("Hours (0.5 steps)")}
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Pressable
-              onPress={() => setHours((h) => Math.max(0.5, Math.round((h - 0.5) * 10) / 10))}
-              style={{ borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 10 }}
-            >
-              <Text style={{ fontWeight: "800" }}>-</Text>
-            </Pressable>
-            <Text style={{ marginHorizontal: 16, fontSize: 16, fontWeight: "900" }}>{hours.toFixed(1)} hrs</Text>
-            <Pressable
-              onPress={() => setHours((h) => Math.min(24, Math.round((h + 0.5) * 10) / 10))}
-              style={{ borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 10 }}
-            >
-              <Text style={{ fontWeight: "800" }}>+</Text>
-            </Pressable>
-          </View>
-
-          {sectionTitle("Description (max 300)")}
-          <TextInput
-            value={desc}
-            onChangeText={setDesc}
-            placeholder="Write short note..."
-            multiline
-            style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12, marginTop: 6, height: 90 }}
-          />
-
-          <Pressable
-            onPress={saveEntry}
-            style={{ backgroundColor: "#111", padding: 14, borderRadius: 12, alignItems: "center", marginTop: 18 }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "900" }}>Save Entry</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setScreen("log")}
-            style={{
-              padding: 14,
-              borderRadius: 12,
-              alignItems: "center",
-              marginTop: 10,
-              borderWidth: 1,
-              borderColor: "#ddd",
-            }}
-          >
-            <Text style={{ fontWeight: "800" }}>Back</Text>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
+if (screen === "add") {
+  return (
+    <AddEntryScreen
+      screen={screen}
+      setScreen={setScreen}
+      entryDate={entryDate}
+      setEntryDate={setEntryDate}
+      category={category}
+      setCategory={setCategory}
+      hours={hours}
+      setHours={setHours}
+      desc={desc}
+      setDesc={setDesc}
+      saveEntry={saveEntry}
+    />
+  );
+}
 // ADD THE EDIT SCREEN
 if (screen === "edit") {
-  if (!selectedEntry) {
-    // safety fallback
-    setScreen("log");
-    return null;
-  }
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <ScreenHeader title="Edit Work Entry" showTabs={true} screen={screen} setScreen={setScreen} />
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {sectionTitle("Entry Date (YYYY-MM-DD)")}
-        <TextInput
-          value={editDate}
-          onChangeText={setEditDate}
-          style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12 }}
-        />
-
-        {sectionTitle("Category (Select one)")}
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-          {CATEGORIES.map((c) => (
-            <Chip key={c} label={c} selected={editCategory === c} onPress={() => setEditCategory(c)} />
-          ))}
-        </View>
-
-        {sectionTitle("Hours (0.5 steps)")}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={() => setEditHours((h) => Math.max(0.5, Math.round((h - 0.5) * 10) / 10))}
-            style={{ borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 10 }}
-          >
-            <Text style={{ fontWeight: "800" }}>-</Text>
-          </Pressable>
-
-          <Text style={{ marginHorizontal: 16, fontSize: 16, fontWeight: "900" }}>
-            {editHours.toFixed(1)} hrs
-          </Text>
-
-          <Pressable
-            onPress={() => setEditHours((h) => Math.min(24, Math.round((h + 0.5) * 10) / 10))}
-            style={{ borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 10 }}
-          >
-            <Text style={{ fontWeight: "800" }}>+</Text>
-          </Pressable>
-        </View>
-
-        {sectionTitle("Description (max 300)")}
-        <TextInput
-          value={editDesc}
-          onChangeText={setEditDesc}
-          placeholder="Write short note..."
-          multiline
-          style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12, marginTop: 6, height: 90 }}
-        />
-
-        <Pressable
-          onPress={saveEditedEntry}
-          style={{ backgroundColor: "#111", padding: 14, borderRadius: 12, alignItems: "center", marginTop: 18 }}
-        >
-          <Text style={{ color: "#fff", fontWeight: "900" }}>Save Changes</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={deleteSelectedEntry}
-          style={{
-            borderWidth: 1,
-            borderColor: "#d33",
-            padding: 14,
-            borderRadius: 12,
-            alignItems: "center",
-            marginTop: 10,
-          }}
-        >
-          <Text style={{ fontWeight: "900", color: "#d33" }}>Delete Entry</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => {
-            setSelectedEntry(null);
-            setScreen("log");
-          }}
-          style={{
-            padding: 14,
-            borderRadius: 12,
-            alignItems: "center",
-            marginTop: 10,
-            borderWidth: 1,
-            borderColor: "#ddd",
-          }}
-        >
-          <Text style={{ fontWeight: "800" }}>Back</Text>
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+    <EditEntryScreen
+      screen={screen}
+      setScreen={setScreen}
+      selectedEntry={selectedEntry}
+      setSelectedEntry={setSelectedEntry}
+      editDate={editDate}
+      setEditDate={setEditDate}
+      editCategory={editCategory}
+      setEditCategory={setEditCategory}
+      editHours={editHours}
+      setEditHours={setEditHours}
+      editDesc={editDesc}
+      setEditDesc={setEditDesc}
+      saveEditedEntry={saveEditedEntry}
+      deleteSelectedEntry={deleteSelectedEntry}
+    />
   );
 }
 
   if (screen === "dash") {
-    const rows = Object.entries(monthlyTotals.totals).sort((a, b) => b[1] - a[1]);
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fafafa" }}>
-        <ScreenHeader title="Dashboard" showTabs={true} screen={screen} setScreen={setScreen} />
-        <View style={{ padding: 16 }}>
-          <View style={{ flexDirection: "row" }}>
-            <Tile title="Total Hours (month)" value={monthlyTotals.totalHours.toFixed(1)} />
-            <Tile title="Unproductive (month)" value={unproductiveHours.toFixed(1)} />
-          </View>
-          <View style={{ flexDirection: "row" }}>
-            <Tile title="Documentation (month)" value={docHours.toFixed(1)} />
-            <Tile title="Study Time (month)" value={studyHours.toFixed(1)} />
-          </View>
-
-          <Text style={{ marginTop: 14, marginBottom: 8, fontWeight: "900" }}>Category Totals</Text>
-          <View style={{ backgroundColor: "#fff", borderRadius: 12, borderWidth: 1, borderColor: "#eee" }}>
-            {rows.length === 0 ? (
-              <Text style={{ padding: 14, color: "#555" }}>No entries for this month.</Text>
-            ) : (
-              rows.map(([cat, hrs]) => (
-                <View
-                  key={cat}
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    padding: 14,
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#f2f2f2",
-                  }}
-                >
-                  <Text>{cat}</Text>
-                  <Text style={{ fontWeight: "900" }}>{hrs.toFixed(1)}</Text>
-                </View>
-              ))
-            )}
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  return (
+    <DashboardScreen
+      screen={screen}
+      setScreen={setScreen}
+      monthlyTotals={monthlyTotals}
+      unproductiveHours={unproductiveHours}
+      docHours={docHours}
+      studyHours={studyHours}
+    />
+  );
+}
 
   if (screen === "export") {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <ScreenHeader title="Export (MVP Demo)" showTabs={true} screen={screen} setScreen={setScreen} />
-        <View style={{ padding: 16 }}>
-          <Text style={{ color: "#555" }}>
-            In the full build, this screen will generate a PDF/Excel report from the server. For now it confirms the flow.
-          </Text>
-
-          <Pressable
-            onPress={() => Alert.alert("Export (MVP)", "Later: PDF/Excel will be generated for the selected date range.")}
-            style={{ backgroundColor: "#111", padding: 14, borderRadius: 12, alignItems: "center", marginTop: 18 }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "900" }}>Generate Report</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  return <ExportScreen screen={screen} setScreen={setScreen} />;
+}
 
   return null;
 }
