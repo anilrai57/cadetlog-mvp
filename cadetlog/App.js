@@ -11,7 +11,9 @@ import AddEntryScreen from "./src/screens/AddEntryScreen";
 import EditEntryScreen from "./src/screens/EditEntryScreen";
 import DashboardScreen from "./src/screens/DashboardScreen";
 import ExportScreen from "./src/screens/ExportScreen";
+import { ACTIVE_CADETS } from "./src/constants/activeCadets";
 import { RANKS, SHIP_TYPES, CATEGORIES } from "./src/constants/masterData";
+import AlertsScreen from "./src/screens/AlertsScreen";
 import { STORAGE_KEYS, saveToStorage, loadFromStorage, clearAllStorage } from "./src/storage/storage";
 import {
   SafeAreaView,
@@ -23,6 +25,10 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
+function clearPendingAlerts() {
+  setAlerts([]);
+  Alert.alert("Cleared", "All pending alerts cleared.");
+}
 
 function sectionTitle(text) {
   return <Text style={{ fontSize: 12, color: "#555", marginBottom: 8, marginTop: 12 }}>{text}</Text>;
@@ -57,6 +63,7 @@ export default function App() {
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [hours, setHours] = useState(2.0);
   const [desc, setDesc] = useState("");
+  const [alerts, setAlerts] = useState([]);
 // ✅ ADD RIGHT HERE
 const [selectedEntry, setSelectedEntry] = useState(null);
 
@@ -73,7 +80,9 @@ useEffect(() => {
     const savedShip = await loadFromStorage(STORAGE_KEYS.ship, null);
     const savedEntries = await loadFromStorage(STORAGE_KEYS.entries, null);
     const savedEntryDate = await loadFromStorage(STORAGE_KEYS.entryDate, null);
-
+    const savedAlerts = await loadFromStorage(STORAGE_KEYS.alerts, []); 
+    setAlerts(savedAlerts);
+    if (savedAlerts) setAlerts(savedAlerts);
     if (savedShip) setShip(savedShip);
     if (Array.isArray(savedEntries)) setEntries(savedEntries);
 
@@ -95,7 +104,9 @@ useEffect(() => {
   if (!hydrated) return;
   saveToStorage(STORAGE_KEYS.entryDate, entryDate);
 }, [hydrated, entryDate]);
-
+useEffect(() => {
+  saveToStorage(STORAGE_KEYS.alerts, alerts);
+}, [alerts]);
 
   const todaysEntries = useMemo(() => entries.filter((e) => e.date === entryDate), [entries, entryDate]);
 
@@ -116,12 +127,24 @@ useEffect(() => {
   const studyHours = monthlyTotals.totals["Study Time"] || 0;
 
   function login() {
-    if (!crewId.trim() || !password.trim()) {
-      Alert.alert("Missing details", "Please enter Crew ID and password.");
-      return;
-    }
-    setScreen("home");
+  const id = crewId.trim().toUpperCase();
+
+  if (!id || !password.trim()) {
+    Alert.alert("Missing details", "Please enter Crew ID and password.");
+    return;
   }
+
+  if (!ACTIVE_CADETS.includes(id)) {
+    Alert.alert(
+      "Access denied",
+      "Your Crew ID is not in the active cadet list. Please contact the office."
+    );
+    return;
+  }
+
+  setCrewId(id); // normalize
+  setScreen("home");
+}
 
   function requireShipDetails() {
     if (!ship.shipName.trim() || !ship.signOn.trim() || !ship.shipType.trim()) {
@@ -160,11 +183,30 @@ useEffect(() => {
     setDesc("");
 
     if (category === "Unproductive Work") {
-      Alert.alert(
-        "Alert (MVP demo)",
-        "In the full build, this will send an email alert to cadets@angloeastern.com after sync."
-      );
-    }
+  const alertItem = {
+    id: String(Date.now()),
+    createdAt: new Date().toISOString(),
+    crewId: crewId.trim().toUpperCase(),
+    shipName: ship.shipName,
+    shipType: ship.shipType,
+    date: entryDate,
+    hours,
+    desc,
+    status: "pending",
+  };
+
+  setAlerts((prev) => {
+    const next = [alertItem, ...prev];
+    // ✅ persist immediately so Alerts screen definitely sees it
+    saveToStorage(STORAGE_KEYS.alerts, next);
+    return next;
+  });
+
+  Alert.alert(
+    "Alert queued",
+    "Unproductive Work alert saved offline. It will be ready to send when internet is available."
+  );
+}
 
     setScreen("log");
   }
@@ -253,6 +295,7 @@ async function clearAllData() {
     signOff: "",
   });
   setEntries([]);
+  setAlerts([]);
   setEntryDate("2026-02-22");
 
   Alert.alert("Cleared", "All saved data cleared.");
@@ -268,6 +311,16 @@ async function clearAllData() {
       password={password}
       setPassword={setPassword}
       login={login}
+    />
+  );
+}
+if (screen === "alerts") {
+  return (
+    <AlertsScreen
+      screen={screen}
+      setScreen={setScreen}
+      alerts={alerts}
+      clearPendingAlerts={clearPendingAlerts}
     />
   );
 }
